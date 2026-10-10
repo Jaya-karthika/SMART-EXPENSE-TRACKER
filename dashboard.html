@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% block content %}
+<h3 class="mb-3">Dashboard</h3>
+{% include 'filter_bar.html' %}
+<div class="row mb-4">
+  <div class="col-md-6 mb-3"><div class="card shadow-sm text-center"><div class="card-body">
+    <div class="text-muted">Total Spent</div><h2 class="text-primary">₹{{ total }}</h2></div></div></div>
+  <div class="col-md-6 mb-3"><div class="card shadow-sm text-center"><div class="card-body">
+    <div class="text-muted">Number of Expenses</div><h2 class="text-success">{{ count }}</h2></div></div></div>
+</div>
+{% if count %}
+<div class="row">
+  <div class="col-md-5 mb-3"><div class="card shadow-sm"><div class="card-body">
+    <h5>Category-wise Spending</h5><canvas id="pieChart"></canvas></div></div></div>
+  <div class="col-md-7 mb-3"><div class="card shadow-sm"><div class="card-body">
+    <h5>Expenses Over Time</h5><canvas id="barChart"></canvas></div></div></div>
+</div>
+{{ cat_labels|json_script:"cat-labels" }}
+{{ cat_values|json_script:"cat-values" }}
+{{ day_labels|json_script:"day-labels" }}
+{{ day_values|json_script:"day-values" }}
+{% else %}
+<div class="alert alert-info">No data for this filter yet. <a href="{% url 'add_expense' %}">Add an expense</a>.</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+{% if count %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script>
+  const get = id => JSON.parse(document.getElementById(id).textContent);
+  new Chart(document.getElementById('pieChart'), {
+    type: 'pie',
+    data: { labels: get('cat-labels'), datasets: [{ data: get('cat-values'),
+      backgroundColor: ['#0d6efd','#198754','#ffc107','#dc3545','#6f42c1','#20c997','#fd7e14'] }] }
+  });
+  new Chart(document.getElementById('barChart'), {
+    type: 'bar',
+    data: { labels: get('day-labels'), datasets: [{ label: 'Total per day (₹)', data: get('day-values'), backgroundColor: '#0d6efd' }] },
+    options: { scales: { y: { beginAtZero: true } } }
+  });
+</script>
+{% endif %}
+{% endblock %}
